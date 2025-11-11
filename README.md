@@ -98,16 +98,11 @@ Frontend: [Projex FE](https://github.com/hazimdanishhh/projex-fe)
 
 **Main Endpoints:**
 
-| Method | Route                | Description                | Auth       |
-| ------ | -------------------- | -------------------------- | ---------- |
-| POST   | `/api/auth/register` | Register a new user        | ❌         |
-| POST   | `/api/auth/login`    | Login user                 | ❌         |
-| GET    | `/api/costings`      | Get all costings (by user) | ✅         |
-| POST   | `/api/costings`      | Create a new costing       | ✅         |
-| PUT    | `/api/costings/:id`  | Update existing costing    | ✅         |
-| DELETE | `/api/costings/:id`  | Delete a costing           | ✅         |
-| GET    | `/api/services`      | List of all service items  | ✅         |
-| POST   | `/api/services`      | Create a service item      | ✅ (Admin) |
+| Method | Route                | Description         | Auth |
+| ------ | -------------------- | ------------------- | ---- |
+| POST   | `/api/auth/register` | Register a new user | ❌   |
+| POST   | `/api/auth/login`    | Login user          | ❌   |
+| GET    | `/api/users`         | Get all users       | ✅   |
 
 ---
 
