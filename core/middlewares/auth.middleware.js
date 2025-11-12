@@ -1,4 +1,4 @@
-// middlewares/auth.middleware.js
+// core/middlewares/auth.middleware.js
 import jwt from "jsonwebtoken";
 import { Op } from "sequelize";
 import User from "../models/user.model.js";
@@ -61,13 +61,18 @@ const authenticateUser = async (req, res, next) => {
       },
     });
 
+    // if (!session) {
+    //   return res.status(401).json({ message: "Session expired or invalid" });
+    // }
+
     if (!session) {
+      await Session.destroy({ where: { id: sessionId } }).catch(() => {});
       return res.status(401).json({ message: "Session expired or invalid" });
     }
 
     // 6) Fetch user
     const user = await User.findByPk(userId, {
-      attributes: ["id", "email", "name", "status"],
+      attributes: ["id", "email", "name", "status", "role"],
     });
 
     if (!user) {
@@ -79,6 +84,7 @@ const authenticateUser = async (req, res, next) => {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role,
       status: user.status,
     };
 

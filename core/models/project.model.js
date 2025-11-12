@@ -20,7 +20,7 @@ const Project = sequelize.define(
       allowNull: true,
     },
     status: {
-      type: DataTypes.ENUM("active", "completed", "on_hold"),
+      type: DataTypes.ENUM("active", "completed", "on_hold", "archived"),
       allowNull: false,
       defaultValue: "active",
     },
@@ -31,7 +31,7 @@ const Project = sequelize.define(
     },
     createdBy: {
       type: DataTypes.UUID,
-      allowNull: true,
+      allowNull: false,
       field: "created_by",
       references: {
         model: "users",
