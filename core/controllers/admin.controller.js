@@ -1,174 +1,136 @@
-import mongoose from "mongoose";
 import bcrypt from "bcrypt";
+import { v4 as uuidv4 } from "uuid";
+import sequelize from "../../config/db.js";
 import User from "../models/user.model.js";
 
-// ADMIN ONLY
-
 // =============================
-// CREATE USER (name, email, password, role)
+// CREATE USER AS ADMIN
 // =============================
 // [POST] /api/admin/create-user
 export const createUserAsAdmin = async (req, res, next) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  const transaction = await sequelize.transaction();
 
   try {
-    const { name, email, password, role, companyId, department, position } =
-      req.body;
+    const { name, username, email, password, role } = req.body;
 
-    // Basic Validation
-    if (
-      !name ||
-      !email ||
-      !password ||
-      !role ||
-      !companyId ||
-      !department ||
-      !position
-    ) {
-      const error = new Error("All fields are required.");
-      error.statusCode = 400;
-      throw error;
+    // Validation
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({
+        success: false,
+        message: "name, email, password, and role are required",
+      });
     }
 
-    // Optional: Validate role is one of the allowed values
     const allowedRoles = ["user", "admin"];
     if (!allowedRoles.includes(role)) {
-      const error = new Error("Invalid role specified.");
-      error.statusCode = 400;
-      throw error;
+      return res.status(400).json({
+        success: false,
+        message: "Invalid role specified",
+      });
     }
 
-    // Validate department is one of the allowed values
-    const allowedDepartments = [
-      "Business Development & Sales",
-      "Accounting & Finance",
-      "Human Resource",
-      "Production & Operations",
-      "Group Executive Chairman's (GEC's) Office",
-      "Strategic Planning & Corporate Affairs",
-      "Corporate Communications",
-    ];
-    if (!allowedDepartments.includes(department)) {
-      const error = new Error("Invalid department specified.");
-      error.statusCode = 400;
-      throw error;
-    }
-
-    // Check for existing user email
-    const existingUser = await User.findOne({ email });
+    // Check if email exists
+    const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      const error = new Error("User already exists with this email.");
-      error.statusCode = 409;
-      throw error;
-    }
-
-    // Check for existing company ID
-    const existingCompanyId = await User.findOne({ companyId });
-    if (existingCompanyId) {
-      const error = new Error("User already exists with this company ID.");
-      error.statusCode = 409;
-      throw error;
+      return res.status(409).json({
+        success: false,
+        message: "User already exists with this email",
+      });
     }
 
     // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user with role
+    // Create user
+    const userId = uuidv4();
     const newUser = await User.create(
-      [
-        {
-          name,
-          email,
-          password: hashedPassword,
-          role,
-          companyId,
-          department,
-          position,
-        },
-      ],
-      { session }
+      {
+        id: userId,
+        name,
+        username: username || null,
+        email,
+        passwordHash: hashedPassword,
+        role,
+        status: "active",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      { transaction }
     );
 
-    await session.commitTransaction();
-    session.endSession();
+    await transaction.commit();
+
+    const { passwordHash, ...userWithoutPassword } = newUser.toJSON();
 
     res.status(201).json({
       success: true,
-      message: "User created successfully by admin.",
-      data: {
-        user: {
-          _id: newUser[0]._id,
-          name: newUser[0].name,
-          email: newUser[0].email,
-          role: newUser[0].role,
-          companyId: newUser[0].companyId,
-          department: newUser[0].department,
-          position: newUser[0].position,
-        },
-      },
+      message: "User created successfully by admin",
+      user: userWithoutPassword,
     });
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+    await transaction.rollback();
     next(error);
   }
 };
 
 // =============================
-// UPDATE USER BY ID (name, username, email, password, role, companyId, department, position)
+// UPDATE USER AS ADMIN
 // =============================
 // [PATCH] /api/admin/users/:id
 export const updateUserAsAdmin = async (req, res, next) => {
-  try {
-    const {
-      name,
-      username,
-      email,
-      password,
-      companyId,
-      department,
-      position,
-      role,
-    } = req.body;
+  const transaction = await sequelize.transaction();
 
-    // Handle updates
+  try {
+    const { name, username, email, password, role } = req.body;
+
     const updates = {};
     if (name) updates.name = name;
     if (username) updates.username = username;
     if (email) updates.email = email;
-    if (password) updates.password = await bcrypt.hash(password, 10);
-    if (companyId) updates.companyId = companyId;
-    if (department) updates.department = department;
-    if (position) updates.position = position;
-    if (role) updates.role = role; // Optional: if you're allowing admin to change roles
-
-    // Update
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, updates, {
-      new: true,
-      runValidators: true,
-    }).select("-password");
-
-    // If user not found
-    if (!updatedUser) {
-      const error = new Error("User not found");
-      error.statusCode = 404;
-      throw error;
+    if (password) updates.passwordHash = await bcrypt.hash(password, 10);
+    if (role) {
+      const allowedRoles = ["user", "admin"];
+      if (!allowedRoles.includes(role)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid role specified",
+        });
+      }
+      updates.role = role;
     }
+
+    // Find user first
+    const user = await User.findByPk(req.params.id, { transaction });
+    if (!user) {
+      await transaction.rollback();
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Update user
+    await user.update(updates, { transaction });
+
+    await transaction.commit();
+
+    const { passwordHash, ...userWithoutPassword } = user.toJSON();
 
     res.status(200).json({
       success: true,
-      message: "User updated by admin successfully",
-      data: updatedUser,
+      message: "User updated successfully by admin",
+      user: userWithoutPassword,
     });
   } catch (error) {
-    // If field has duplicate value from database
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyValue)[0];
-      const duplicateError = new Error(`${field} already in use`);
-      duplicateError.statusCode = 400;
-      return next(duplicateError);
+    await transaction.rollback();
+
+    // Unique constraint handling
+    if (error.name === "SequelizeUniqueConstraintError") {
+      const field = error.errors[0].path;
+      return res.status(400).json({
+        success: false,
+        message: `${field} already in use`,
+      });
     }
 
     next(error);
