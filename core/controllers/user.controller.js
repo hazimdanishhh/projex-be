@@ -1,6 +1,23 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import User from "../models/user.model.js";
+import Session from "../models/session.model.js";
 import bcrypt from "bcrypt";
 import { Op } from "sequelize";
+
+const prod = process.env.NODE_ENV === "production";
+
+// =============================
+// COOKIE CONFIG
+// =============================
+const cookieOptions = (maxAgeMs) => ({
+  httpOnly: true,
+  secure: prod,
+  sameSite: prod ? "none" : "lax",
+  maxAge: maxAgeMs,
+  // domain: "costing-system.onrender.com",
+});
 
 // =============================
 // SELF
@@ -110,6 +127,7 @@ export const deleteCurrentUser = async (req, res, next) => {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
 
+    // Find the user
     const user = await User.findByPk(userId);
     if (!user) {
       return res
@@ -117,11 +135,40 @@ export const deleteCurrentUser = async (req, res, next) => {
         .json({ success: false, message: "User not found" });
     }
 
+    // ✅ Revoke all active sessions for this user
+    const activeSessions = await Session.findAll({
+      where: {
+        userId,
+        revokedAt: null,
+        expiresAt: { [Op.gt]: new Date() },
+      },
+    });
+
+    if (activeSessions.length > 0) {
+      await Promise.all(
+        activeSessions.map((session) =>
+          session.update({
+            revokedAt: new Date(),
+            revokedReason: "Account deleted",
+          })
+        )
+      );
+      console.log(
+        `Revoked ${activeSessions.length} session(s) for user ${userId}`
+      );
+    }
+
+    // ✅ Delete user
     await user.destroy();
 
-    res.status(200).json({
+    // ✅ Clear authentication cookies
+    res.clearCookie("accessToken", cookieOptions(0));
+    res.clearCookie("refreshToken", cookieOptions(0));
+
+    return res.status(200).json({
       success: true,
-      message: "Your account has been deleted successfully",
+      message:
+        "Your account has been deleted successfully. All sessions revoked.",
     });
   } catch (error) {
     next(error);
