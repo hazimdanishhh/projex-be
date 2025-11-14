@@ -81,7 +81,7 @@ export const updateUserAsAdmin = async (req, res, next) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const { name, username, email, password, role } = req.body;
+    const { name, username, email, password, role, status } = req.body;
 
     const updates = {};
     if (name) updates.name = name;
@@ -97,6 +97,16 @@ export const updateUserAsAdmin = async (req, res, next) => {
         });
       }
       updates.role = role;
+    }
+    if (status) {
+      const allowedStatuses = ["active", "inactive", "suspended"];
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid status specified",
+        });
+      }
+      updates.status = status;
     }
 
     // Find user first
