@@ -104,6 +104,10 @@ export const register = async (req, res, next) => {
       { transaction }
     );
 
+    // Update last login timestamp (same behaviour as login)
+    newUser.lastLoginAt = new Date();
+    await newUser.save({ transaction });
+
     await transaction.commit();
 
     // Set cookies matching token expiries
