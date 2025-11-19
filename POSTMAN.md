@@ -1,4 +1,10 @@
-Register User -> POST http://localhost:5000/api/auth/register
+# POSTMAN Test Cases
+
+---
+
+## AUTHENTICATION API
+
+### Register User -> **POST** `/api/auth/register`
 
 ```json
 {
@@ -9,7 +15,7 @@ Register User -> POST http://localhost:5000/api/auth/register
 }
 ```
 
-Login User -> POST http://localhost:5000/api/auth/login
+### Login User -> **POST** `/api/auth/login`
 
 ```json
 {
@@ -18,7 +24,7 @@ Login User -> POST http://localhost:5000/api/auth/login
 }
 ```
 
-Update Logged In User -> PATCH http://localhost:5000/api/users/me
+### Update Logged In User -> **PATCH** `/api/users/me`
 
 ```json
 {
@@ -26,15 +32,15 @@ Update Logged In User -> PATCH http://localhost:5000/api/users/me
 }
 ```
 
-Delete Logged In User -> DELETE http://localhost:5000/api/users/me
+### Delete Logged In User -> **DELETE** `/api/users/me`
 
-Logout Logged In User -> POST http://localhost:5000/api/logout
+### Logout Logged In User -> **POST** `/api/logout`
 
 ---
 
-### ▶ **POST** `/api/projects`
+## PROJECTS API
 
-**Create a new project**
+### Create Project -> **POST** `/api/projects`
 
 ```json
 {
@@ -45,18 +51,9 @@ Logout Logged In User -> POST http://localhost:5000/api/logout
 }
 ```
 
----
+### Get All Projects -> **GET** `/api/projects`
 
-### ▶ **GET** `/api/projects`
-
-**Get all projects for logged-in user**
-_(no body needed)_
-
----
-
-### ▶ **PATCH** `/api/projects/:id`
-
-**Update a project**
+### Update Project -> **PATCH** `/api/projects/:id`
 
 ```json
 {
@@ -66,28 +63,19 @@ _(no body needed)_
 }
 ```
 
----
-
-### ▶ **DELETE** `/api/projects/:id`
-
-**Delete a project**
-_(no body needed)_
+### Delete Project -> **DELETE** `/api/projects/:id`
 
 ---
 
----
+## TASKS API
 
-## ✅ Task Endpoints
+### Create Task **POST** `/api/tasks`
 
-### ▶ **POST** `/api/tasks`
-
-**Create a task under a project**
-
-📌 Must include a valid existing `projectId`.
+Must include a valid existing `projectId`.
 
 ```json
 {
-  "projectId": "0aedddea-db13-4f30-91e6-02b083d55b27",
+  "projectId": "insertProjectId",
   "title": "Design project logo",
   "description": "Create multiple logo drafts for the client review.",
   "priority": "high",
@@ -96,42 +84,20 @@ _(no body needed)_
 }
 ```
 
-> 🔸 `assignedTo` is optional — you can leave it out if you don’t want to assign it to anyone yet.
+### Get All Tasks -> **GET** `/api/tasks`
 
----
+### Get Task **GET** `/api/tasks/:id`
 
-### ▶ **GET** `/api/tasks`
-
-**Get all tasks (for user's projects)**
-_(no body needed)_
-
----
-
-### ▶ **GET** `/api/tasks/:id`
-
-**Get one specific task by ID**
-_(no body needed)_
-
----
-
-### ▶ **PATCH** `/api/tasks/:id`
-
-**Update a task**
+### Update Task **PATCH** `/api/tasks/:id`
 
 ```json
 {
   "title": "Design project logo v2",
   "status": "in_progress",
-  "priority": "medium",
-  "assignedTo": null
+  "priority": "medium"
 }
 ```
 
----
-
-### ▶ **DELETE** `/api/tasks/:id`
-
-**Delete a task**
-_(no body needed)_
+### Delete Task -> **DELETE** `/api/tasks/:id`
 
 ---

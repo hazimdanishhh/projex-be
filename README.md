@@ -17,8 +17,7 @@ Frontend: [Projex FE](https://github.com/hazimdanishhh/projex-fe)
   - [📝 Test Cases](#-test-cases)
   - [🗂 Folder Structure](#-folder-structure)
   - [⚙️ Environment Variables](#️-environment-variables)
-  - [📌 Future Improvements](#-future-improvements)
-  - [👤 Authors](#-authors)
+  - [� Authors](#-authors)
   - [📝 License](#-license)
 
 ---
@@ -26,10 +25,8 @@ Frontend: [Projex FE](https://github.com/hazimdanishhh/projex-fe)
 ## 📦 Tech Stack
 
 - **Node.js** + **Express** (Backend API)
-- **MongoDB** with **Mongoose** (Database & ODM)
+- **MySQL** with **Sequelize** (Database & ORM)
 - **JWT Auth** (Access control)
-- **Modular MVC Architecture**
-- Built for internal use with clear roles
 
 ---
 
@@ -37,10 +34,8 @@ Frontend: [Projex FE](https://github.com/hazimdanishhh/projex-fe)
 
 - User authentication (JWT-based)
 - Role-based access control
-- Create/Edit/Delete project costings
-- Dynamic service item selection with hourly rates
-- Auto-calculated subtotals and total costing
-- Full API structure for future frontend integration
+- Create/Edit/Delete projects and tasks
+- Full API structure for frontend integration
 - Modular folder structure using services, controllers, models
 
 ---
@@ -94,21 +89,37 @@ Frontend: [Projex FE](https://github.com/hazimdanishhh/projex-fe)
 
 ## 🧪 API Overview
 
-> API Routes & Middleware -> [routes-&-middleware](./docs/routes-overview.md)
-
 **Main Endpoints:**
 
-| Method | Route                | Description         | Auth |
-| ------ | -------------------- | ------------------- | ---- |
-| POST   | `/api/auth/register` | Register a new user | ❌   |
-| POST   | `/api/auth/login`    | Login user          | ❌   |
-| GET    | `/api/users`         | Get all users       | ✅   |
+| Method | Route                     | Description         | Module         | Access         |
+| ------ | ------------------------- | ------------------- | -------------- | -------------- |
+| POST   | `/api/auth/register`      | Register a new user | Authentication | Public         |
+| POST   | `/api/auth/login`         | Login user          | Authentication | Public         |
+| POST   | `/api/auth/logout`        | Logout user         | Authentication | Logged In User |
+| POST   | `/api/auth/refresh-token` | Verify Session      | Authentication | Public         |
+| GET    | `/api/users`              | Get all users       | Users          | Admin          |
+| POST   | `/api/admin/create-user`  | Create users        | Users          | Admin          |
+| PATCH  | `/api/users/:id`          | Update user         | Users          | Admin          |
+| DELETE | `/api/users/:id`          | Delete user         | Users          | Admin          |
+| GET    | `/api/users/me`           | Get current user    | Users          | Logged In User |
+| PATCH  | `/api/users/me`           | Update current user | Users          | Logged In User |
+| DELETE | `/api/users/me`           | Delete current user | Users          | Logged In User |
+| GET    | `/api/projects/`          | Get all projects    | Projects       | Logged In User |
+| GET    | `/api/projects/:id`       | Get project         | Projects       | Logged In User |
+| POST   | `/api/projects/`          | Create project      | Projects       | Logged In User |
+| PATCH  | `/api/projects/:id`       | Update project      | Projects       | Logged In User |
+| DELETE | `/api/projects/:id`       | Delete project      | Projects       | Logged In User |
+| GET    | `/api/tasks/`             | Get all tasks       | Tasks          | Logged In User |
+| GET    | `/api/tasks/:id`          | Get task            | Tasks          | Logged In User |
+| POST   | `/api/tasks/`             | Create task         | Tasks          | Logged In User |
+| PATCH  | `/api/tasks/:id`          | Update task         | Tasks          | Logged In User |
+| DELETE | `/api/tasks/:id`          | Delete task         | Tasks          | Logged In User |
 
 ---
 
 ## 📝 Test Cases
 
-> Full Postman Test Cases -> [test-cases](./docs/postman-test-cases.md)
+> Full Postman Test Cases -> [test-cases](./POSTMAN.md)
 
 ---
 
@@ -143,16 +154,6 @@ src/
 | `DB_NAME`                | ✅       | Your Database Name                                                        |
 | `NODE_ENV`               | ✅       | Node Environment                                                          |
 | `CLIENT_ORIGIN`          | ✅       | Front End URL (Ensure `CLIENT_ORIGIN` does not have a trailing slash "/") |
-
----
-
-## 📌 Future Improvements
-
-- PDF export of costings
-- Email sending feature
-- Admin dashboard with stats
-- Role-based service item editing
-- Frontend integration (React SSR)
 
 ---
 
